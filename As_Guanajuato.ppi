@@ -1,0 +1,64 @@
+SPECIATION
+  calculationType                    ht1
+  calculationMethod                1
+  database                             llnl.dat
+  mainSpecies                        As
+  xmin                                   5.0
+  xmax                                  9.0
+  ymin                                   -80
+  ymax                                  0
+  resolution                            200
+  jpg                                  T
+
+PLOT
+  plotTitle                              "<mainspecies>-H<sub>2</sub>O-O<sub>2</sub>-H<sub>2</sub>O(dominant species)"
+  xtitle                                  pH
+  ytitle                                  "Eh (V)"
+  yscale                                 Eh        # this makes the y-axis 'Eh' rather than log f O2(g)
+  pymin                                -0.5
+  pymax                                1 
+ #no labels on plot
+  labelSize                            0.0
+  domain t          #adds the domain boundaries transformed to the Eh scale
+  pdf t
+  multipagefile t  # one pdf file for all plots
+  #all t               # for the PHREEQC output in *.all
+ 
+CHEMISTRY
+
+include ht1.inc                                            # standard 'hunt and track' file
+
+SOLUTION 1
+   temp      28.2
+   units     mg/L
+   pH        3
+   As        0.025
+ # background electrolyte
+   Ca        25.4
+   Mg        3.1
+   F        1.64
+   Cl        11.7
+   N        2.3
+   P        0.05
+   C        43.2
+   S         10.2
+   Mo        0.01
+   Cr        0.0015
+   V        0.02
+   U         0.01
+   #Alkalinity 170 as HCO3   # difficult to se alkalinity when C is in the solution so I've used C.
+SAVE solution 1
+END
+
+USE solution 1
+EQUILIBRIUM_PHASES 1 					   # this block is for a second simulation that traverses the x- and y-acxes and for defining mineral phaes that may precip/dissolve
+   Fix_H+     -<x_axis> NaOH                               # <x_axis> is pH so reverse sign. pH adjusting by adding or subtracting NaOH. 
+    -force_equality true
+   O2(g)      <y_axis>
+   
+   Calcite  0 0						   # phases have to be in the input file not just trace elements. Are there more phases you want me to consider?
+   Fluorite 0 0
+   As       0 0
+# etc
+   
+END
