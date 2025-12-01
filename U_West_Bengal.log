@@ -1,0 +1,264 @@
+ 
+*** PhreePlot 1 (Win-IFX-20250004.20241205-x64) 17:34:39 5 Feb 2025
+    Incorporating the iPhreeqc library (3.8.6-17100-x64)
+      by DL Parkhurst, SR Charlton (USGS) and CAJ Appelo (Amsterdam)
+    Hunt & Track by DG Kinniburgh and DM Cooper (CEH, NERC)
+    Fitting by MJD Powell and others
+    Postscript plotting by KE Kohler
+    Linux & Mac versions by M Vetuschi Zuccolini (DISTAV, Univ. Genova)
+ 
+10:34:24 25 September 2025
+Input filename: C:\PhreePlot\demo\AssolutionANDpaperplots\U_West_Bengal.ppi.
+ 
+Job title                      .
+-------------------------------------------------------- System --------------------------------------------------------
+Command line parameters
+0                              C:\Users\jackn\AppData\Local\PhreePlot\bin\pp.exe
+1                              C:\PhreePlot\demo\AssolutionANDpaperplots\U_West_Bengal.ppi
+
+PHREEPLOT environment variable C:\Users\jackn\AppData\Local\PhreePlot
+PHREEPLOT_PATH                 C:\Users\jackn\AppData\Local\PhreePlot\bin
+PhreePlot version              1
+Speciation program             PHREEQC
+Version                        3.8.6-17100-x64
+Database                       llnl.dat
+Database version               
+Current working directory      C:\PhreePlot\demo\AssolutionANDpaperplots\
+System directory               C:\Users\jackn\AppData\Local\PhreePlot\system\
+Input file directory           C:\PhreePlot\demo\AssolutionANDpaperplots\
+Fill colour dictionary         C:\PhreePlot\demo\AssolutionANDpaperplots\fillcolor.dat
+Line colour dictionary         linecolor.dat (not found)
+------------------------------------------------ Ghostscript and fonts -------------------------------------------------
+Ghostscript executable         C:\Users\jackn\AppData\Local\PhreePlot\bin\gswin64c.exe (PhreePlot)
+Ghostscript version            GPL Ghostscript 9.52 (2020-03-19)
+Fonts file                     C:\Users\jackn\AppData\Local\PhreePlot\system\fonts.dat
+Font family or font requested  Helvetica
+Base font used                 Helvetica
+ 
+========================================================= Job ==========================================================
+Calculation type               ht1
+Calculation method             calculate and plot
+Main species                   U
+<loop>                         min = UNDEFINED       max = UNDEFINED       int = UNDEFINED
+<y_axis>                       min =   -80.000       max =    0.0000
+<x_axis>                       min =    5.0000       max =    9.0000
+Resolution                     200
+ 
+====================================================== Input file ======================================================
+SPECIATION
+  calculationType                    ht1
+  calculationMethod                1
+  database                             llnl.dat
+  mainSpecies                        U
+  xmin                                   5.0
+  xmax                                  9.0
+  ymin                                   -80
+  ymax                                  0
+  resolution                            200
+  jpg                                  T
+
+PLOT
+  plotTitle                              "<mainspecies>-H<sub>2</sub>O-O<sub>2</sub>-H<sub>2</sub>O(dominant species)"
+  xtitle                                  pH
+  ytitle                                  "Eh (V)"
+  yscale                                 Eh        # this makes the y-axis 'Eh' rather than log f O2(g)
+#  extraText                          "extratextU.dat"
+  pymin                                -0.5
+  pymax                                1
+  labelSize                            0.0
+  domain t          #adds the domain boundaries transformed to the Eh scale
+  pdf t
+  multipagefile t  # one pdf file for all plots
+  #all t               # for the PHREEQC output in *.all
+
+CHEMISTRY
+
+include ht1.inc                                            # standard 'hunt and track' file
+
+SOLUTION 1
+   temp      28.2
+   units     mg/L
+   pH        3
+   As        0.076
+ # background electrolyte
+   Ca        51.2
+   Mg        45.7
+   Cl        63.2
+   N        1.1
+   P        0.05
+   C        80
+   S         5.6
+   Mo        0.001
+   Cr        0.0003
+   V        0.00006
+   U         0.00003
+   #Alkalinity 330 as HCO3
+SAVE solution 1
+END
+
+USE solution 1
+EQUILIBRIUM_PHASES 1
+   Fix_H+     -<x_axis> NaOH                               # <x_axis> is pH so reverse sign
+    -force_equality true
+   O2(g)      <y_axis>
+
+   Calcite  0 0
+   Fluorite 0 0
+   U      0 0
+# etc
+
+END
+-------------------------------------------------- Override settings ---------------------------------------------------
+# add any input here that you want to override settings in pp.set and *.ppi
+--------------------------------------------------- Input chemistry ----------------------------------------------------
+
+Chemistry divided into PHREEQC simulations:
+
+    1: PRINT
+    2: -reset false
+    3: PHASES
+    4: Fix_H+
+    5: H+ = H+
+    6: log_k 0.0
+    7: SELECTED_OUTPUT 1
+    8: -high_precision true
+    9: -reset false
+   10: USER_PUNCH 1
+   11: -headings
+   12: -start
+   13: 1 small = 1e-12
+   14: 20 nout1 = 0
+   15: 40 nout3 = 0
+   16: 50 main$ = "<mainspecies>"
+   17: 60 IF (STEP_NO = 0) THEN 370 ELSE 70
+   18: 70 totel = SYS(main$, n, n$, t$, moles)
+   19: 80 h2o = TOT("water")
+   20: 90 REM Predominant species based on concn (but filter out gases)
+   21: 100 REM species are sorted largest first
+   22: 100 FOR i = 1 TO n
+   23: 110   IF (moles(i) <= small) THEN 190
+   24: 120   REM IF (t$(i) <> 'aq') THEN 180
+   25: 130   IF (INSTR(n$(i), "(g)") > 0) THEN 180
+   26: 140   PUNCH n$(i), moles(i)/h2o
+   27: 150 REM PRINT i, n$(i), moles(i)/h2o
+   28: 160   nout1 = nout1+1
+   29: 170   IF (nout1 >= 3) THEN 190
+   30: 180 NEXT i
+   31: 190 REM no forced mineral species (see ht1stability.inc)
+   32: 191 nout2 = 0
+   33: 200 REM add these constraints or overrides
+   34: 201 IF (SI("H2(g)") > 0) THEN 210 ELSE 230
+   35: 210 PUNCH "H2(g) > 1 atm", 10^SI("H2(g)")
+   36: 220 nout3 = nout3+1
+   37: 230 IF (SI("O2(g)") > -0.677) THEN 240 ELSE 260
+   38: 240 PUNCH "O2(g) > 0.21 atm", 10^SI("O2(g)")
+   39: 250 nout3 = nout3+1
+   40: 260 IF (SI("CH4(g)") > 0) THEN 270 ELSE 290
+   41: 270 PUNCH "CH4(g) > 1 atm", 10^SI("CH4(g)")
+   42: 280 nout3 = nout3+1
+   43: 290 REM add any extra 'carry' variables for viewing using name, value pairs as above
+   44: 299 nout4 = 0
+   45: 300 REM the 5 system variables (always required)
+   46: 301 po2 = SI("O2(g)")
+   47: 310 ph2 = SI("H2(g)")
+   48: 320 ph = -LA("H+")
+   49: 330 pe = -LA("e-")
+   50: 340 PUNCH "pH", ph, "pe", pe, "PO2", po2, "PH2", ph2, "temp", TC
+   51: 350 nout5 = 5
+   52: 360 REM output the 5 counters
+   53: 361 PUNCH nout1, nout2, nout3, nout4, nout5
+   54: 370 END
+   55: SOLUTION 1
+   56: temp      28.2
+   57: units     mg/L
+   58: pH        3
+   59: As        0.076
+   60: Ca        51.2
+   61: Mg        45.7
+   62: Cl        63.2
+   63: N        1.1
+   64: P        0.05
+   65: C        80
+   66: S         5.6
+   67: Mo        0.001
+   68: Cr        0.0003
+   69: V        0.00006
+   70: U         0.00003
+   71: SAVE solution 1
+   72: END
+........................................................ End 1 .........................................................
+   73: USE solution 1
+   74: EQUILIBRIUM_PHASES 1
+   75: Fix_H+     -<x_axis> NaOH
+   76: -force_equality true
+   77: O2(g)      <y_axis>
+   78: Calcite  0 0
+   79: Fluorite 0 0
+   80: U      0 0
+   81: END
+........................................................ End 2 .........................................................
+
+2 PHREEQC simulations found.
+ 
+====================================================== Main loop =======================================================
+
+The main loop simulation (2) has been run 2481 times.
+
+Calculation time for this loop was 19.326 sec.
+------------------------------------------------ Predominance fields 1 -------------------------------------------------
+
+Simplification of polygon boundaries completed.
+
+All polygons closed OK.
+
+Minimum area needed for a field to be labelled is 0.10%.
+------------------------------------------------------- Plotting -------------------------------------------------------
+
+dy/dx on plot (angle to rotate the water line for redox vs pH) =   9.1 degrees.
+
+40 species have been read from the fill colour dictionary: C:\PhreePlot\demo\AssolutionANDpaperplots\fillcolor.dat.
+
+Labelling for plot 1:
+  num     x(mm)     y(mm)        label
+    1     75.100   158.648      "U(OH)4"
+    2     32.822   200.874      "UO2HPO4"
+    3     45.816   199.005      "UO2CO3"
+    4     74.962   218.334      "O2(g) > 0.21 atm"
+    5     84.747   192.617      "UO2(CO3)2-2"
+    6    113.838   190.896      "UO2(CO3)3-4"
+    7    115.592   188.157      "UO2(OH)2"
+    8    118.532   187.770      "UO2(OH)3-"
+
+The labels dictionary:
+
+   num    sp       x       yeh        ynative       pe        angle      %area  species
+     1     1      7.004     -0.189    -66.824     -3.164      0.000     32.918  "U(OH)4"
+     2     2      5.125      0.515    -27.261      8.606      0.000      4.185  "UO2HPO4"
+     3     4      5.703      0.483    -27.034      8.085      0.000     14.943  "UO2CO3"
+     4     6      6.998      0.806     -0.302     13.472      9.060      0.754  "O2(g) > 0.21 atm"
+     5     7      7.433      0.377    -27.235      6.304      0.000     42.546  "UO2(CO3)2-2"
+     6     8      8.726      0.348    -23.983      5.824      0.000      0.414  "UO2(CO3)3-4"
+     7     5      8.804      0.303    -26.724      5.061      0.000      2.114  "UO2(OH)2"
+     8     9      8.935      0.296    -26.633      4.953      0.000      2.126  "UO2(OH)3-"
+
+Plotting of fields completed.
+
+
+Predominance plot(s) completed.
+ 
+================================================= Writing Plot file(s) =================================================
+ps   file written: C:\PhreePlot\demo\AssolutionANDpaperplots\U_West_Bengal.ps.
+ps   file written: C:\PhreePlot\demo\AssolutionANDpaperplots\plot.ps.
+pdf  file written: C:\PhreePlot\demo\AssolutionANDpaperplots\U_West_Bengal.pdf.
+jpg  file written: C:\PhreePlot\demo\AssolutionANDpaperplots\U_West_Bengal.jpg.
+ 
+======================================================= Wrap-up ========================================================
+
+Input file executed 2481 times and any plotting completed in 23.292 sec.
+
+
+Total time taken was 23.650 sec.
+
+Done.
+
+........................................................................................................................
